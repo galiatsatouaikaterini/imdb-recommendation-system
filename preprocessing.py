@@ -9,6 +9,10 @@ ratings = pd.read_csv("title.ratings.tsv", sep = '\t', low_memory=False)
 ratings.dropna()
 print(ratings.head())
 
+crew = pd.read_csv("title.crew.tsv", sep = '\t', low_memory=False)
+crew.dropna()
+print(crew.head())
+
 # remove adult movies from the titles dataset
 titles = titles[titles['isAdult'] != 1] # isAdult (boolean) - 0: non-adult title; 1: adult title
 
@@ -22,6 +26,9 @@ titles = titles[(titles['genres'] != 'Biography') & (titles['genres'] != 'Talk-S
 
 # drop column 'endYear'
 titles.drop('endYear', axis=1,  inplace=True) # endYear (YYYY) – TV Series end year. ‘\N’ for all other title types
+
+# drop column 'writers' from crew dataset
+crew.drop('writers', axis=1, inplace=True)
 
 # left- join the title and ratings dataset
 titles_ratings = pd.merge(titles, ratings, on='tconst', how='left')
@@ -85,25 +92,3 @@ for i in wiki_titles:
     except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
         plot= np.NaN
 
-
-
-
-
-
-# we need to extarct the plots so that we can do tf-idf and then cosine similarity 
-
-# my plan is to have a .py file/script for content based filtering and another one for collaborative 
-
-# Content based filtering using plots
-# at first we can do conten based filtering using only the plots but thats not always accurate since there are other metrics that we can take into consideration
-
-# Content based filtering using genre, director, actors...
-
-
-# Colaborative Filtering 
-# User based Filtering
-# Item Based Collaborative Filtering
-# Singular ValuE Decomposition
-
-
-# maybe create a hybrid system at the end. I read somewhere that you can do that but we will see. 
