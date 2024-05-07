@@ -16,10 +16,10 @@
 
 ### TO DO
 - preprocessing / preparation:
-    - create one type called movie for every type of movie and one for the tv series
-    - explore the values of TitleType and Genres to drop unwanted ones
-    - get wikipedia plots
-    - join all movie datasets into one after preprocessing (add crew)
+    - create one type called movie for every type of movie and one for the tv series: DONE
+    - explore the values of TitleType and Genres to drop unwanted ones: DONE
+    - get wikipedia plots : DONE
+    - join all movie datasets into one after preprocessing (add crew) : DONE
     - create user dataset with random info about users
     - create user rating dataset
 

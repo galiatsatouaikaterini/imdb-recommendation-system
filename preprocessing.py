@@ -1,66 +1,81 @@
 import pandas as pd
+import re
+import wikipedia
+import numpy as np
+
+# --------------------- importing data --------------------------
 
 # reading the .tsv file
 titles = pd.read_csv("title.basics.tsv", sep = '\t', low_memory=False) 
 titles.dropna()
-print(titles.head())
+print("titiles dataset:", titles.head())
 
 ratings = pd.read_csv("title.ratings.tsv", sep = '\t', low_memory=False)
 ratings.dropna()
-print(ratings.head())
+print("ratings dataset:", ratings.head())
 
 crew = pd.read_csv("title.crew.tsv", sep = '\t', low_memory=False)
 crew.dropna()
-print(crew.head())
+print("crew dataset:", crew.head())
 
-# remove adult movies from the titles dataset
+
+# ---------------------- preprocessing --------------------------
+
+# titles df: remove adult movies from the titles dataset
 titles = titles[titles['isAdult'] != 1] # isAdult (boolean) - 0: non-adult title; 1: adult title
 
 # drop column ‘isAdult’
 titles.drop('isAdult', axis=1,  inplace=True)
-print(titles.head())
 
-#genres_unique = titles['genres'].unique() # genres (string array) – includes up to three genres associated with the title
-#print(genres_unique)
-titles = titles[(titles['genres'] != 'Biography') & (titles['genres'] != 'Talk-Show')] #trying to limit the titles to movies, series
+# trying to limit the titles to genres related to movies and series
+unique_genres = titles['genres'].unique()
+print("Unique genres:", unique_genres)
+
+# drop genres: videoGame, video, tvPilot, tvSpecial
+values_to_exclude_genres = ['Biography', 'Talk-Show'] # values to exclude from the 'titleType' column
+
+regex_pattern = '|'.join(values_to_exclude_genres) # constructing a regex pattern to match any of the specified genres
+
+titles = titles[~titles['genres'].str.contains(regex_pattern, regex=True, na=False)]
 
 # drop column 'endYear'
 titles.drop('endYear', axis=1,  inplace=True) # endYear (YYYY) – TV Series end year. ‘\N’ for all other title types
 
-# drop column 'writers' from crew dataset
+
+# create one type for movies & one for tv series: now there are multiple types for each category and that makes the dataset complicated 
+unique_title_types = titles['titleType'].unique() # first we need to check all the possible types for movies
+print("Unique title types:", unique_title_types) # titleType (string) – the type/format of the title (e.g. movie, short, tvseries, tvepisode, video, etc)
+
+titles.loc[titles['titleType'].isin(['movie', 'short', 'tvShort', 'tvMovie']), 'titleType'] = 'movie' # convert all movie types  to 'movie'
+titles.loc[titles['titleType'].isin(['tvSeries', 'tvEpisode', 'tvMiniSeries']), 'titleType'] = 'tvseries' # convert all tv series types  to 'tvseries'
+
+
+# drop titleType: videoGame, video, tvPilot, tvSpecial
+values_to_exclude_titleType = ['videoGame', 'video', 'tvPilot', 'tvSpecial'] # values to exclude from the 'titleType' column
+# the df excluding these values
+titles = titles[~titles['titleType'].isin(values_to_exclude_titleType)]
+
+
+# crew df: drop column 'writers' 
 crew.drop('writers', axis=1, inplace=True)
+
+
+# --------------------- JOIN datasets --------------------------------
 
 # left- join the title and ratings dataset
 titles_ratings = pd.merge(titles, ratings, on='tconst', how='left')
-print(titles_ratings.head())
+imdb = imdb_full = pd.merge(titles_ratings, crew, on='tconst', how='left')
+print("IMDB dataset: ", imdb.head())
 
 # for the generation of the user data, we want the tconst column as a csv: import it to mockaroo
 titles['tconst'].to_csv('tconst.csv', index=False) 
 
 
 
-# wikipedia api
-
-import requests 
-import wikipedia
-import numpy as np
-
-#language_code = 'en'
-#search_query = 'solar system'
-#number_of_results = 1
-#headers = {
-#  'Authorization': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI5NzcwYWE1ODA4Y2ExYzU0NmEyNDkxNTFkOTkyODBhNSIsImp0aSI6IjAwMmIzNGQwYjhhNTRhMDczNjVkYjQyMGI1OWQyMzAxNTA2MzI2ZWRlOWMwOTYyOTdkNTM3NzIxYTQ5ZmY1Yjk5OTgyZjJhYWNkN2JhZjhlIiwiaWF0IjoxNzE0NjQwMTI2LjkxNzkxNywibmJmIjoxNzE0NjQwMTI2LjkxNzkyMiwiZXhwIjozMzI3MTU0ODkyNi45MTYwNzMsInN1YiI6Ijc1NTYxMzcwIiwiaXNzIjoiaHR0cHM6Ly9tZXRhLndpa2ltZWRpYS5vcmciLCJyYXRlbGltaXQiOnsicmVxdWVzdHNfcGVyX3VuaXQiOjUwMDAsInVuaXQiOiJIT1VSIn0sInNjb3BlcyI6WyJiYXNpYyIsImNyZWF0ZWVkaXRtb3ZlcGFnZSIsImVkaXRwcm90ZWN0ZWQiXX0.bt5x9st3Jifsf205MNCuYPlUoZ2AAvZa8O24-ha36FRkcYP0WaruWTOXkF8k8dltAgH-15VLFJE5H9Iq1Izqw43I_aKU1pIjRDazXlQRMu5ifmVdUTXvrHSfIPijgMAgI43nZLdM92TbhdnRAe5L5n_GNTG5geVnnI35qP4LRiAjxuZ_H9d5JHb4ZRclRGyRduIF4DUrsxHCej_8SINLjxH23ttbHsGQgoa-flmx381uTHut7NJ3FvnKaBAM6i3at4alxYvJhNAg-Be0p17qhTe_ko7KSkfWpCek3paS22swJH4rxkMWZQI0liBbLZ6BQxEon15uxnSBYxqHm5aCzsSPbJsKgu8zHecLqNe9Cq6ouAH7xLeIvLj_3i1ItpFbFcniMOsXTBqauqq1AY0wShhUlmbpeXPIICmlU_FwhdOwTi1ut_A54wmZ_CjOGrxf3RT8_tvf4psYSb9bBvPbkzCe2FgXfLLGrD0h3UpopiEe0ww3Mj8Sb45G8d6_SYrYFFOhCJB3azZlJuwA4erYy4xHkpvW2HLYPOOgD-J3XESVAKzZqMDsE3-i5gyWE0xRf0s74x8g86BmJiH6osLYLZi4QzutfLrK0Di1IOTAIwKo0U8tNhX_UfrdJOiaqVwkPVHGBeamSytuEt1zp9KtOPUsd1ghiEihgjBgAqWdouM',
- # 'User-Agent': 'Y9770aa5808ca1c546a249151d99280a5'
-#}
-
-#base_url = 'https://api.wikimedia.org/core/v1/wikipedia/'
-#endpoint = '/search/page'
-#url = base_url + language_code + endpoint
-#parameters = {'q': search_query, 'limit': number_of_results}
-#response = requests.get(url, headers=headers, params=parameters)
+# --------------------- wikipedia api ----------------------------
 
 # get all the titles of the movies that we want to extract the plots
-wiki_titles = ['Barbie']
+wiki_titles = imdb['primaryTitle'].iloc[:5] # use the primary title column, ltes test the p for the 5 first titles in the dtaset
 
 # create a list of all the names that the section might be called
 possibles = ['Plot','Synopsis','Plot synopsis','Plot summary', 
@@ -68,12 +83,13 @@ possibles = ['Plot','Synopsis','Plot synopsis','Plot summary',
             'Content','Premise']
 
 # sometimes those possible names have 'Edit' latched onto the end due to user error on wikipedia
-# in that case, it will be 'PlotEdit' so it's easiest just to make another list that acccounts for that
+# in that case, it will be 'PlotEdit' so it's easier to make another list that acccounts for that
 possibles_edit = [i + 'Edit' for i in possibles]
 
 #then merge those two lists together
 all_possibles = possibles + possibles_edit
 
+print("Starting the fetching plot process. This might take a while due to the size of the dataset, be patient...")
 # fetch plots
 for i in wiki_titles:
 # loading the page once and save it as a variable, otherwise it will request the page every time
@@ -89,6 +105,9 @@ for i in wiki_titles:
         for j in all_possibles:
             if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
                 plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
+                print(plot_)
     except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
         plot= np.NaN
 
+# create a mini dtaaset with columns: tconst and plots
+# add the mini dataset to the imdb dataset and drop any movie wth null plot
