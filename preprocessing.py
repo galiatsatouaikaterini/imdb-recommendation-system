@@ -71,6 +71,9 @@ print("IMDB dataset: ", imdb.head())
 titles['tconst'].to_csv('tconst.csv', index=False) 
 
 
+def get_dataframe(): # function to get dfs to another python file
+    print("Getting the df...")
+    return imdb
 
 # --------------------- wikipedia api ----------------------------
 
