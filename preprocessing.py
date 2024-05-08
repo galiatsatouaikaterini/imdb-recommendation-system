@@ -77,40 +77,62 @@ def get_dataframe(): # function to get dfs to another python file
 
 # --------------------- wikipedia api ----------------------------
 
-# get all the titles of the movies that we want to extract the plots
-wiki_titles = imdb['primaryTitle'].iloc[:5] # use the primary title column, ltes test the p for the 5 first titles in the dtaset
+def get_plots(imdb):
+    # get all the titles of the movies that we want to extract the plots
+    wiki_titles = imdb['primaryTitle'] # use the primary title column
 
-# create a list of all the names that the section might be called
-possibles = ['Plot','Synopsis','Plot synopsis','Plot summary', 
-             'Story','Plotline','The Beginning','Summary',
-            'Content','Premise']
+    # create a list of all the names that the section might be called
+    possibles = ['Plot','Synopsis','Plot synopsis','Plot summary', 
+                'Story','Plotline','The Beginning','Summary',
+                'Content','Premise']
 
-# sometimes those possible names have 'Edit' latched onto the end due to user error on wikipedia
-# in that case, it will be 'PlotEdit' so it's easier to make another list that acccounts for that
-possibles_edit = [i + 'Edit' for i in possibles]
+    # sometimes those possible names have 'Edit' latched onto the end due to user error on wikipedia
+    # in that case, it will be 'PlotEdit' so it's easier to make another list that acccounts for that
+    possibles_edit = [i + 'Edit' for i in possibles]
 
-#then merge those two lists together
-all_possibles = possibles + possibles_edit
+    #then merge those two lists together
+    all_possibles = possibles + possibles_edit
 
-print("Starting the fetching plot process. This might take a while due to the size of the dataset, be patient...")
-# fetch plots
-for i in wiki_titles:
-# loading the page once and save it as a variable, otherwise it will request the page every time
-# always do a try, except when pulling from the API, in case it gets confused by the title
-    try:
-        wik = wikipedia.WikipediaPage(i[0])
-    except:
-        wik = np.NaN
+    print("Starting the fetching plot process. This might take a while due to the size of the dataset, be patient...")
 
-# a new try, except for the plot
-    try:
-        # for all possible titles in all_possibles list
-        for j in all_possibles:
-            if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
-                plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
-                print(plot_)
-    except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
-        plot= np.NaN
+    title_plots = [] # initialize list to store plots
 
-# create a mini dtaaset with columns: tconst and plots
-# add the mini dataset to the imdb dataset and drop any movie wth null plot
+    # fetch plots
+    for i in wiki_titles:
+    # loading the page once and save it as a variable, otherwise it will request the page every time
+    # always do a try, except when pulling from the API, in case it gets confused by the title
+        try:
+            wik = wikipedia.WikipediaPage(i[0])
+        except:
+            wik = np.NaN
+
+    # a new try, except for the plot
+        try:
+            # for all possible titles in all_possibles list
+            for j in all_possibles:
+                if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
+                    plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
+        except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
+            plot= np.NaN
+
+        title_plots.append({'primaryTitle': i, 'plot': plot_})
+
+    # create a df with the fetched plots
+    plots_df = pd.DataFrame(title_plots)
+
+    # Merge with the original DataFrame, using 'primaryTitle' as the key
+    merged_df = imdb.merge(plots_df, on='primaryTitle', how='left')
+    merged_df = merged_df.dropna(subset=['plot']) # dropping rows with null plots
+
+    return merged_df
+
+
+# ask if the user wants to run the plot fetching process
+proceed = input("Do you want to proceed with fetching movie plots? (yes/no): ").strip().lower()
+
+if proceed == 'yes':
+    imdb_with_plots = get_plots(imdb)
+    print("Fetching completed.")
+    print("IMDB with Plots: ", imdb_with_plots)
+else:
+    print("Process cancelled.")
