@@ -1,21 +1,23 @@
-from preprocessing import get_dataframe
+# from preprocessing import get_dataframe
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # import df from preprocessing
-imdb = get_dataframe()
-print(imdb.head())
+#imdb = get_dataframe()
+#print(imdb.head())
+
+imdb = pd.read_csv("imdb.csv")
 
 # Steps:
 
 # import data from preprocessing
 
-# feature extraction
+# feature extraction: Extract meaningful features from movies. This can include genres, descriptions (using NLP techniques), cast, director, user ratings, etc.
 
-# vectorize the text to numeric
+# vectorize the text to numeric: Convert these features into numerical vectors. For text, you could use embeddings from models like Word2Vec, GloVe, or even transformers (e.g., BERT). For categorical data like genres, use one-hot encoding or embeddings.
 
-# similarity score
+# model architecture: Design a neural network that takes these vectors as input. A common approach is to use dense layers with activation functions like ReLU. Optionally, incorporate techniques like dropout for regularization to prevent overfitting.
 
 # recommendation of top n movies
 
@@ -151,8 +153,7 @@ print(top_n)
 
 
 # so now i have to combine these methods for the content based filtering model and also add other columns such as plots: but this model doesnt have "machine learning"
-
-
+# maybe we can compare the above methods with the machine learning model to have some kind of comparison but apart from that we need to read papers about evaluation methods
 # BoW and TF-IDF are based on word frequencies and do not capture the semantic relationships between words
 
 #  

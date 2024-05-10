@@ -67,6 +67,8 @@ titles_ratings = pd.merge(titles, ratings, on='tconst', how='left')
 imdb = imdb_full = pd.merge(titles_ratings, crew, on='tconst', how='left')
 print("IMDB dataset: ", imdb.head())
 
+imdb.to_csv('imdb.csv', index=False) 
+
 # for the generation of the user data, we want the tconst column as a csv: import it to mockaroo
 titles['tconst'].to_csv('tconst.csv', index=False) 
 
@@ -134,5 +136,6 @@ if proceed == 'yes':
     imdb_with_plots = get_plots(imdb)
     print("Fetching completed.")
     print("IMDB with Plots: ", imdb_with_plots)
+    imdb_with_plots.to_csv('imdb_with_plots.csv', index=False) 
 else:
     print("Process cancelled.")
