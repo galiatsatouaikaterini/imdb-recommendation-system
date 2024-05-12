@@ -114,10 +114,9 @@ def get_plots(imdb):
             for j in all_possibles:
                 if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
                     plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
+                    title_plots.append({'primaryTitle': i, 'plot': plot_})
         except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
             plot= np.NaN
-
-        title_plots.append({'primaryTitle': i, 'plot': plot_})
 
     # create a df with the fetched plots
     plots_df = pd.DataFrame(title_plots)

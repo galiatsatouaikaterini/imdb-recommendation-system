@@ -16,6 +16,7 @@
 
 ### TO DO
 - preprocessing / preparation:
+    - exclude the movies with rating number lower than a threshold/ weighted average 
     - create one type called movie for every type of movie and one for the tv series: DONE
     - explore the values of TitleType and Genres to drop unwanted ones: DONE
     - get wikipedia plots : DONE
