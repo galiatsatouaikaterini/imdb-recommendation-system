@@ -21,25 +21,7 @@ def get_plots(imdb):
     print("Starting the fetching plot process. This might take a while due to the size of the dataset, be patient...")
 
     title_plots = [] # initialize list to store plots
-
-    """  i = wiki_titles[0]
-    try:
-            wik = wikipedia.WikipediaPage(i)
-    except:
-        wik = np.NaN
-    
-    try:
-        # if no plot is found, then plot equals np.NaN
-        plot_ = np.NaN
-        # for all possible titles in all_possibles list
-        for j in all_possibles:
-            if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
-                print('found section')
-                plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
-        title_plots.append({'primaryTitle': i, 'plot': plot_})
-    except: # if the page didn't load from above, then plot equals np.NaN
-        title_plots.append({'primaryTitle': i, 'plot': plot_}) """
-    
+  
     # fetch plots
     logs_helper = 0
     for i in wiki_titles:
