@@ -30,6 +30,8 @@
     - Item Based Collaborative Filtering
     - Singular ValuE Decomposition
 
+    - Neural Collaborative Filtering (NCF): 
+
     - test Item Based Collaborative Filtering with test and training split
 
 - content - filtering
