@@ -66,8 +66,18 @@ crew.drop('writers', axis=1, inplace=True)
 titles_ratings = pd.merge(titles, ratings, on='tconst', how='left')
 imdb = imdb_full = pd.merge(titles_ratings, crew, on='tconst', how='left')
 print("IMDB dataset: ", imdb.head())
+print('imdb shape: ', imdb.shape)
 
 imdb.to_csv('imdb.csv', index=False) 
+
+# drop moview with low ratings
+minimumVotes = imdb['numVotes'].quantile(0.9)
+print('minimumVotes 90: ', minimumVotes)
+
+imdb_small = imdb.copy().loc[imdb['numVotes']>= minimumVotes]
+print('imdb_small: ', imdb_small.shape)
+
+imdb_small.to_csv('imdb_small.csv', index=False)
 
 # for the generation of the user data, we want the tconst column as a csv: import it to mockaroo
 titles['tconst'].to_csv('tconst.csv', index=False) 
@@ -98,25 +108,34 @@ def get_plots(imdb):
     print("Starting the fetching plot process. This might take a while due to the size of the dataset, be patient...")
 
     title_plots = [] # initialize list to store plots
-
+  
     # fetch plots
+    logs_helper = 0
     for i in wiki_titles:
     # loading the page once and save it as a variable, otherwise it will request the page every time
     # always do a try, except when pulling from the API, in case it gets confused by the title
         try:
-            wik = wikipedia.WikipediaPage(i[0])
+            wik = wikipedia.WikipediaPage(i)
         except:
             wik = np.NaN
 
-    # a new try, except for the plot
+         # a new try, except for the plot
         try:
+            # if no plot is found, then plot equals np.NaN
+            plot_ = np.NaN
             # for all possible titles in all_possibles list
             for j in all_possibles:
                 if wik.section(j) != None: # if that section does exist, i.e. it doesn't return 'None'
                     plot_ = wik.section(j).replace('\n','').replace("\'","")  #then that's what the plot is! Otherwise try the next one!
-                    title_plots.append({'primaryTitle': i, 'plot': plot_})
-        except: # if none of those work, or if the page didn't load from above, then plot equals np.NaN
-            plot= np.NaN
+            title_plots.append({'primaryTitle': i, 'plot': plot_})
+
+        except: # if the page didn't load from above, then plot equals np.NaN
+            title_plots.append({'primaryTitle': i, 'plot': plot_})
+        
+        logs_helper = logs_helper+1
+        if logs_helper % 500 == 0:
+            print(f'checking ',logs_helper)
+        
 
     # create a df with the fetched plots
     plots_df = pd.DataFrame(title_plots)
@@ -132,7 +151,8 @@ def get_plots(imdb):
 proceed = input("Do you want to proceed with fetching movie plots? (yes/no): ").strip().lower()
 
 if proceed == 'yes':
-    imdb_with_plots = get_plots(imdb)
+    imdb = pd.read_csv("imdb.csv")
+    imdb_with_plots = get_plots(imdb.iloc[:10000,:])
     print("Fetching completed.")
     print("IMDB with Plots: ", imdb_with_plots)
     imdb_with_plots.to_csv('imdb_with_plots.csv', index=False) 
