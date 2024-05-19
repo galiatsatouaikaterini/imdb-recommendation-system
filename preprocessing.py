@@ -70,17 +70,28 @@ print('imdb shape: ', imdb.shape)
 
 imdb.to_csv('imdb.csv', index=False) 
 
-# drop moview with low ratings
-minimumVotes = imdb['numVotes'].quantile(0.9)
-print('minimumVotes 90: ', minimumVotes)
+# --------------------- preproces joined IMDB dataset --------------------------------
 
-imdb_small = imdb.copy().loc[imdb['numVotes']>= minimumVotes]
-print('imdb_small: ', imdb_small.shape)
+# drop movies/series with less than 1000 ratings
+imdb_small = imdb.copy().loc[imdb['numVotes']>= 1000]
+
+# drop duplicates
+imdb_small.drop_duplicates(subset=['primaryTitle', 'startYear'], keep='last', inplace=True)
+
+# drop short movies/series in genre
+imdb_small = imdb_small[~imdb_small['genres'].apply(lambda x: 'Short' in x)]
+
+# drop movies/series after 2020 or before 1960
+imdb_small = imdb_small.loc[imdb_small['startYear'] <= '2020']
+imdb_small = imdb_small.loc[imdb_small['startYear'] >= '1960']
+
+print("IMDB dataset: ", imdb.head())
+print('imdb_small shape: ',imdb_small.shape)
 
 imdb_small.to_csv('imdb_small.csv', index=False)
 
 # for the generation of the user data, we want the tconst column as a csv: import it to mockaroo
-titles['tconst'].to_csv('tconst.csv', index=False) 
+imdb_small['tconst'].to_csv('tconst.csv', index=False) 
 
 
 def get_dataframe(): # function to get dfs to another python file
@@ -152,7 +163,7 @@ proceed = input("Do you want to proceed with fetching movie plots? (yes/no): ").
 
 if proceed == 'yes':
     imdb = pd.read_csv("imdb.csv")
-    imdb_with_plots = get_plots(imdb.iloc[:10000,:])
+    imdb_with_plots = get_plots(imdb_small.iloc[:10000,:])
     print("Fetching completed.")
     print("IMDB with Plots: ", imdb_with_plots)
     imdb_with_plots.to_csv('imdb_with_plots.csv', index=False) 
