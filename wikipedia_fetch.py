@@ -65,10 +65,11 @@ def get_plots(imdb):
 proceed = input("Do you want to proceed with fetching movie plots? (yes/no): ").strip().lower()
 
 if proceed == 'yes':
-    imdb = pd.read_csv("imdb.csv")
-    imdb_with_plots = get_plots(imdb)
+    imdb = pd.read_csv("imdb_small.csv")
+    # do only a couple at a time and save them under a different name
+    imdb_with_plots = get_plots(imdb.iloc[60000:65672,:])
     print("Fetching completed.")
     print("IMDB with Plots: ", imdb_with_plots)
-    imdb_with_plots.to_csv('imdb_with_plots.csv', index=False) 
+    imdb_with_plots.to_csv('imdb_with_plot65.csv', index=False) 
 else:
     print("Process cancelled.")
