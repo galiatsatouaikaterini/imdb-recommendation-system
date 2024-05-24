@@ -120,16 +120,17 @@ genres = imdb['genres'].str.split(",").tolist()
 """
 #applying the pre-processing to the 'plot' column
 imdb_copy = imdb.copy()
-#mdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot)
+#imdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot) 
 
 #create a bag of words model
 vectorizer = CountVectorizer()
 bow_matrix = vectorizer.fit_transform(imdb_copy['plot'])
 
 # convert the BoW matrix to a dataframe
+"""
 bow_df = pd.DataFrame(bow_matrix.toarray(), columns=vectorizer.get_feature_names_out())
 bow_df['title'] = imdb_copy['primaryTitle']
-
+"""
 """
 def create_bow(genre_list): # creating a bag of words representation for the title genres
     bow = {}
@@ -143,20 +144,20 @@ genre_df = pd.DataFrame(bags_of_words, index=titles).fillna(0) # creating a df t
 print("Genres df: ", genre_df)
 """
 # Function to find the cosine similarity for a given movie title
-def find_similar_movies(movie_title, bow_df):
+def find_similar_movies(movie_title, bow_matrix, imdb_copy):
     # Check if the movie title exists in the DataFrame
-    if movie_title not in bow_df['title'].values:
+    if movie_title not in imdb_copy['primaryTitle'].values:
         print(f"Movie title '{movie_title}' not found.")
         return None
     
     # Get the index of the movie
-    movie_idx = bow_df[bow_df['title'] == movie_title].index[0]
+    movie_idx = imdb_copy[imdb_copy['primaryTitle'] == movie_title].index[0]
     
     # Get the BoW vector for the movie
-    movie_vector = bow_df.drop(columns=['title']).iloc[movie_idx].values.reshape(1, -1)
+    movie_vector = bow_matrix[movie_idx]
     
     # Compute cosine similarity between the movie vector and all other movie vectors
-    similarity_matrix = cosine_similarity(movie_vector, bow_df.drop(columns=['title']).values)
+    similarity_matrix = cosine_similarity(movie_vector, bow_matrix)
     
     # Get similarity scores and corresponding movie titles
     similarity_scores = list(enumerate(similarity_matrix[0]))
@@ -165,14 +166,16 @@ def find_similar_movies(movie_title, bow_df):
     # Print top 10 similar movies
     print(f"Top 10 movies similar to '{movie_title}':")
     for idx, score in similarity_scores[1:11]:  # Skip the first one as it will be the movie itself
-        print(f"Movie: {bow_df.iloc[idx]['title']}, Similarity Score: {score}")
+        similar_movie_title = imdb_copy.iloc[idx]['primaryTitle']
+        print(f"Movie: {similar_movie_title}, Similarity Score: {score}")
 
+"""
 # cosine_similarity = cosine_similarity(bow_df) # calculating the cosine similarity matrix between the titles
 
 # similarity_df = pd.DataFrame(cosine_similarity, index=genre_df.index, columns=genre_df.index) # creating a df with the cosine similarity scores
 # print("Similarity df for bow: ", similarity_df)
 
-
+"""
 
 # test 
 title = input("Enter the title of a movie: ")
@@ -196,7 +199,7 @@ print(f'Top {n} similar movies to {title}:') # printing the top n most similar t
 print(top_n)
 """
 
-find_similar_movies(title, bow_df)
+find_similar_movies(title, bow_matrix, imdb_copy)
 
 # ----------------------------- TF- IDF --------------------------------------
 
