@@ -2,6 +2,7 @@
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 # import df from preprocessing
 #imdb = get_dataframe()
@@ -90,9 +91,46 @@ print(get_recommendations(title, n))
 # eventually we can use this method for the plots but for now I am testing it on the genre column again
 print("------------Bag of Words Approach ---------------")
 
+#import nltk and stemmer for pre-processing
+import nltk
+import ssl
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+nltk.download('stopwords')
+stemmer = PorterStemmer()
+
+#removing stop words and performing stemming/lemmatization
+def preprocess_plot(text):
+    tokens = text.split()
+    tokens = [stemmer.stem(token) for token in tokens if token not in stopwords.words('english')]
+    return ' '.join(tokens)
+
+"""
 titles = imdb['primaryTitle'].tolist()
 genres = imdb['genres'].str.split(",").tolist()
+"""
+#applying the pre-processing to the 'plot' column
+imdb_copy = imdb.copy()
+#mdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot)
 
+#create a bag of words model
+vectorizer = CountVectorizer()
+bow_matrix = vectorizer.fit_transform(imdb_copy['plot'])
+
+# convert the BoW matrix to a dataframe
+bow_df = pd.DataFrame(bow_matrix.toarray(), columns=vectorizer.get_feature_names_out())
+bow_df['title'] = imdb_copy['primaryTitle']
+
+"""
 def create_bow(genre_list): # creating a bag of words representation for the title genres
     bow = {}
     for genre in genre_list:
@@ -103,17 +141,42 @@ bags_of_words = [create_bow(movie_genres) for movie_genres in genres] # creating
 
 genre_df = pd.DataFrame(bags_of_words, index=titles).fillna(0) # creating a df to store the bags of words representation for the title genres
 print("Genres df: ", genre_df)
+"""
+# Function to find the cosine similarity for a given movie title
+def find_similar_movies(movie_title, bow_df):
+    # Check if the movie title exists in the DataFrame
+    if movie_title not in bow_df['title'].values:
+        print(f"Movie title '{movie_title}' not found.")
+        return None
+    
+    # Get the index of the movie
+    movie_idx = bow_df[bow_df['title'] == movie_title].index[0]
+    
+    # Get the BoW vector for the movie
+    movie_vector = bow_df.drop(columns=['title']).iloc[movie_idx].values.reshape(1, -1)
+    
+    # Compute cosine similarity between the movie vector and all other movie vectors
+    similarity_matrix = cosine_similarity(movie_vector, bow_df.drop(columns=['title']).values)
+    
+    # Get similarity scores and corresponding movie titles
+    similarity_scores = list(enumerate(similarity_matrix[0]))
+    similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
+    
+    # Print top 10 similar movies
+    print(f"Top 10 movies similar to '{movie_title}':")
+    for idx, score in similarity_scores[1:11]:  # Skip the first one as it will be the movie itself
+        print(f"Movie: {bow_df.iloc[idx]['title']}, Similarity Score: {score}")
 
-cosine_similarity = cosine_similarity(genre_df) # calculating the cosine similarity matrix between the titles
+# cosine_similarity = cosine_similarity(bow_df) # calculating the cosine similarity matrix between the titles
 
-similarity_df = pd.DataFrame(cosine_similarity, index=genre_df.index, columns=genre_df.index) # creating a df with the cosine similarity scores
-print("Similarity df for bow: ", similarity_df)
+# similarity_df = pd.DataFrame(cosine_similarity, index=genre_df.index, columns=genre_df.index) # creating a df with the cosine similarity scores
+# print("Similarity df for bow: ", similarity_df)
 
 
 
 # test 
 title = input("Enter the title of a movie: ")
-
+"""
 while True:
     n = input("Enter the number of recommened movies that you want: ")
     try:
@@ -131,7 +194,9 @@ top_n = similarity_df.iloc[title_index].sort_values(ascending=False)[1:n+1]
 
 print(f'Top {n} similar movies to {title}:') # printing the top n most similar titles to the given title
 print(top_n)
+"""
 
+find_similar_movies(title, bow_df)
 
 # ----------------------------- TF- IDF --------------------------------------
 
