@@ -67,9 +67,8 @@ def get_recommendations(title, top_n): # function to get the recommended movies,
     
     return imdb['primaryTitle'].iloc[movie_indices] # return the top_n most similar movies
      
-
-# test 
-title = input("Enter the title of a movie: ")
+print("------------Binary Feature Matrix Approach ---------------") 
+""" title = input("Enter the title of a movie: ")
 
 while True:
     n = input("Enter the number of recommened movies that you want: ")
@@ -82,14 +81,14 @@ while True:
 
 # get the recommended movies
 print(f"Top {n} recommended movies using binary feature matrix: ")
-print(get_recommendations(title, n))
+print(get_recommendations(title, n)) """
 
 
 
 # ---------------------------- Bag of Words for genre column ----------------------
 
 # eventually we can use this method for the plots but for now I am testing it on the genre column again
-print("------------Bag of Words Approach ---------------")
+""" print("------------Bag of Words Approach ---------------")
 
 #import nltk and stemmer for pre-processing
 import nltk
@@ -115,8 +114,8 @@ def preprocess_plot(text):
     return ' '.join(tokens)
 
 """
-titles = imdb['primaryTitle'].tolist()
-genres = imdb['genres'].str.split(",").tolist()
+#titles = imdb['primaryTitle'].tolist()
+#genres = imdb['genres'].str.split(",").tolist()
 """
 #applying the pre-processing to the 'plot' column
 imdb_copy = imdb.copy()
@@ -131,7 +130,7 @@ bow_df = pd.DataFrame(bow_matrix.toarray(), columns=vectorizer.get_feature_names
 bow_df['title'] = imdb_copy['primaryTitle']
 
 """
-def create_bow(genre_list): # creating a bag of words representation for the title genres
+""" def create_bow(genre_list): # creating a bag of words representation for the title genres
     bow = {}
     for genre in genre_list:
         bow[genre] = 1
@@ -140,7 +139,7 @@ def create_bow(genre_list): # creating a bag of words representation for the tit
 bags_of_words = [create_bow(movie_genres) for movie_genres in genres] # creating a list of bags of words representations for the title genres
 
 genre_df = pd.DataFrame(bags_of_words, index=titles).fillna(0) # creating a df to store the bags of words representation for the title genres
-print("Genres df: ", genre_df)
+print("Genres df: ", genre_df) """
 """
 # Function to find the cosine similarity for a given movie title
 def find_similar_movies(movie_title, bow_df):
@@ -177,7 +176,7 @@ def find_similar_movies(movie_title, bow_df):
 # test 
 title = input("Enter the title of a movie: ")
 """
-while True:
+""" while True:
     n = input("Enter the number of recommened movies that you want: ")
     try:
         user_number = int(n)
@@ -193,27 +192,20 @@ title_index = similarity_df.index.get_loc(title) # finding the index of the titl
 top_n = similarity_df.iloc[title_index].sort_values(ascending=False)[1:n+1]
 
 print(f'Top {n} similar movies to {title}:') # printing the top n most similar titles to the given title
-print(top_n)
+print(top_n) """
 """
 
-find_similar_movies(title, bow_df)
+find_similar_movies(title, bow_df) """
 
 # ----------------------------- TF- IDF --------------------------------------
 
-genres_combined = imdb['genres'].str.replace('|', ' ') # combining the genres for each title into a single string
-print("Genres combined: ", genres_combined)
+def get_tf_idf(plot):
+    tfidf = TfidfVectorizer(stop_words='english') # creating a TfidfVectorizer object to transform the title genres into a Tf-idf representation and removing stop words
+    tfidf_matrix = tfidf.fit_transform(plot)
+        
+    return tfidf_matrix
 
-tfidf = TfidfVectorizer(stop_words='english') # creating a TfidfVectorizer object to transform the title genres into a Tf-idf representation and removing stop words
-tfidf_matrix = tfidf.fit_transform(genres_combined) 
-print("TF-IDF matrix: ", tfidf_matrix)
-
-cosine_similarity = cosine_similarity(tfidf_matrix) # calculating the cosine similarity matrix between the titles
-     
-similarity_df = pd.DataFrame(cosine_similarity, index=imdb['primaryTitle'], columns=imdb['primaryTitle']) # creating a df with the cosine similarity scores
-print("Similarity df for tf- idf: ", similarity_df)
-
-
-# test 
+print("------------ TF-IDF Approach ---------------")
 title = input("Enter the title of a movie: ")
 
 while True:
@@ -225,19 +217,15 @@ while True:
     except ValueError:
         print("Invalid input. Please enter a valid integer.")
 
-title_index = similarity_df.index.get_loc(title) # finding the index of the title in the similarity dataframe
 
-# getting the top n most similar titles to the given titles
-top_n = similarity_df.iloc[title_index].sort_values(ascending=False)[1:n+1]
+tf_idf = get_tf_idf(imdb['plot'])
+# Get the index of the movie
+movie_idx = imdb[imdb['primaryTitle'] == title].index[0]
+similarity_matrix = cosine_similarity(tf_idf[movie_idx], tf_idf)
 
-# print the top n most similar titles to the given title
-print(f'Top {n} similar movies to {title}:')
-print(top_n)
+similarity_scores = list(enumerate(similarity_matrix[0]))
+similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
+movie_indices = [i[0] for i in similarity_scores[1:user_number+1]] # getting the top_n movie indices
 
-
-
-# so now i have to combine these methods for the content based filtering model and also add other columns such as plots: but this model doesnt have "machine learning"
-# maybe we can compare the above methods with the machine learning model to have some kind of comparison but apart from that we need to read papers about evaluation methods
-# BoW and TF-IDF are based on word frequencies and do not capture the semantic relationships between words
-
-#  
+print(imdb['primaryTitle'].iloc[movie_indices]) # return the top_n most similar movies
+  
