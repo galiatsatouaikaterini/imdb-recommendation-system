@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 #imdb = get_dataframe()
 #print(imdb.head())
 
-imdb = pd.read_csv("imdb.csv")
+imdb = pd.read_csv("imdb_with_plots.csv")
 
 # Steps:
 
@@ -17,33 +17,52 @@ imdb = pd.read_csv("imdb.csv")
 
 # vectorize the text to numeric: Convert these features into numerical vectors. For text, you could use embeddings from models like Word2Vec, GloVe, or even transformers (e.g., BERT). For categorical data like genres, use one-hot encoding or embeddings.
 
-# model architecture: Design a neural network that takes these vectors as input. A common approach is to use dense layers with activation functions like ReLU. Optionally, incorporate techniques like dropout for regularization to prevent overfitting.
-
 # recommendation of top n movies
 
 
 # for starters I am testing everything for one column only: genre
 
 
-# ------------------ Binary Feature Matrix for genre column ----------------------
+# ------------------ Binary Feature Matrix for each column ----------------------
+def get_binary_matrix(df, col):
+    
+    if col == 'genres':
+        # transform genre into list
+        df['genres'] = df['genres'].str.split(",")
+        df_filtered = df[['tconst',col]]
+    
+        # Explode the column into separate rows to get dummies properly divided (Action = True for [Action] and [Action, Thriller])
+        df_exploded = df_filtered.explode(col)
+        
+        # Use get_dummies to convert the column to binary values (True, False)
+        binary_matrix = pd.get_dummies(df_exploded[col])
+        
+        # Join the binary matrix back to the exploded DataFrame
+        df_exploded = pd.concat([df_exploded, binary_matrix], axis=1)
+        
+        # Group by 'tconst' and sum the binary columns to get one row per movie again
+        binary_matrix = df_exploded.groupby('tconst').sum().reset_index()
 
-#  each movie is represented by a set of binary features that indicate whether the movie belongs to a certain genre or not
-print("------------Binary Feature Matrix Approach ---------------")
+        # drop unneccessary columns to have similar size to other matrices
+        binary_matrix.drop('tconst', axis=1, inplace=True)
+        binary_matrix.drop(col, axis=1, inplace=True)
 
-genre_matrix = pd.get_dummies(imdb['genres'].str.split(",").apply(pd.Series).stack()).sum(level=0) # create the binary feature matrix for genre
-print("Genre Matrix: ", genre_matrix.head()) # genre_matrix: each row corresponds to a movie and each column corresponds to a genre (values: 0, 1)
+    else:
+    
+        # Use get_dummies to convert the column to binary
+        binary_matrix = pd.get_dummies(df[col])
 
-similarity = cosine_similarity(genre_matrix) # computing the cosine similarity matrix
-print("Cosine similarity for binary feature matrix: ", similarity)
+    return cosine_similarity(binary_matrix)
+
 
 def get_recommendations(title, top_n): # function to get the recommended movies, n: number of movie recommendations
     
     idx = imdb[imdb['primaryTitle'] == title].index[0] # finding the index of the movie with the given title
     
+    similarity = get_binary_matrix(imdb, 'averageRating')
     similarity_scores = list(enumerate(similarity[idx])) # getting the cosine similarity scores for the movie
     similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)  # sorting the similarity scores in descending order
-    
-    movie_indices = [i[0] for i in similarity_scores[1:top_n+1]] # getting the top_n movie indices
+    movie_indices = [i[0] for i in similarity_scores[1:int(top_n)+1]] # getting the top_n movie indices
     
     return imdb['primaryTitle'].iloc[movie_indices] # return the top_n most similar movies
      
@@ -62,7 +81,7 @@ while True:
 
 # get the recommended movies
 print(f"Top {n} recommended movies using binary feature matrix: ")
-print(get_recommendations(title))
+print(get_recommendations(title, n))
 
 
 
@@ -119,7 +138,7 @@ print(top_n)
 genres_combined = imdb['genres'].str.replace('|', ' ') # combining the genres for each title into a single string
 print("Genres combined: ", genres_combined)
 
-tfidf = TfidfVectorizer() # creating a TfidfVectorizer object to transform the title genres into a Tf-idf representation
+tfidf = TfidfVectorizer(stop_words='english') # creating a TfidfVectorizer object to transform the title genres into a Tf-idf representation and removing stop words
 tfidf_matrix = tfidf.fit_transform(genres_combined) 
 print("TF-IDF matrix: ", tfidf_matrix)
 
