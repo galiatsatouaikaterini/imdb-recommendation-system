@@ -1,13 +1,20 @@
 ## Movie and TV Series Recommender Systems
 
-- add summary / stuff to do here
+- files ´preprocessing.py´ and ´dataset_exploration.ipynb´ for data preprocessing and cleaning
+- file ´wikipedia_fetch.py´ used for adding plot's from wikipedia
+- file contenbasedfiltering.py for three approaches to contentbased - filtering
+- file collaborativefiltering.py for Neural Collaborative Filtering 
 
 
 ### General Information
 - download the datasets from google drive and then do the preprocessing steps to get the dataset
 - DATASETS:
     - tconst: list with movie/shows ids
-    - imdb: all movies / shows info from imdb and plots from wikipedia
+    - imdb: all movies / shows info from imdb
+    - imdb_small: preprocessed + cleaned data from imdb, used as a base to get plots from wikipedia
+        - shape: (65672, 10)
+    - imdb_with_plots: cleaned data from imdb_small with plots from wikipedia 
+        - shape: (23442, 11)
     - user: all info about users
     - user/movie matrix: user id, movie id and rating of user 
 
@@ -35,8 +42,10 @@
     - test Item Based Collaborative Filtering with test and training split
 
 - content - filtering
-    - tf-idf and cosine similarity for plots
-        - spacy or other NLP to use or sklearn library
+    - tf-idf and cosine similarity for plots: DONE
+        - spacy or other NLP to use or sklearn library: used TfidfVectorizer
+    - bag of words and cosine similarity for plots: DONE
+        - used CountVectorizer
     - think about evaluation of this method
         - test movies and expected recommendations like sequels
 
