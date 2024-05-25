@@ -23,31 +23,21 @@
 
 ### TO DO
 - preprocessing / preparation:
-    - exclude the movies with rating number lower than 1000: DONE
-    - create one type called movie for every type of movie and one for the tv series: DONE
-    - explore the values of TitleType and Genres to drop unwanted ones: DONE
-    - get wikipedia plots : DONE
-    - join all movie datasets into one after preprocessing (add crew) : DONE
-    - create user dataset with random info about users
-    - create user rating dataset
+    - create user rating dataset: Alif
+    - finish contentbasedfiltering: Carina
 
 - collaborative - filtering
-    - Colaborative Filtering 
-    - User based Filtering
-    - Item Based Collaborative Filtering
-    - Singular ValuE Decomposition
+    - finish the evaluation of the prediction: Kat
+    - train the NCF on our dataset
 
-    - Neural Collaborative Filtering (NCF): 
-
-    - test Item Based Collaborative Filtering with test and training split
-
-- content - filtering
-    - tf-idf and cosine similarity for plots: DONE
-        - spacy or other NLP to use or sklearn library: used TfidfVectorizer
-    - bag of words and cosine similarity for plots: DONE
-        - used CountVectorizer
-    - think about evaluation of this method
-        - test movies and expected recommendations like sequels
+- writing
+    - write about the data
+    - write about contentbasedfiltering
+    - compare collaborative results of kaggle + our dataset
+    - related work: deep NN
+    - related work: conclusion (top n is content)
+    - write results
+    - write conclusion
 
 
 - Updates
