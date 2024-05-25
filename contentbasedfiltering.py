@@ -14,7 +14,7 @@ imdb = pd.read_csv("imdb_with_plots.csv")
 # recommendation of top n movies
 
 
-# ------------------ Binary Feature Matrix for primaryTitle, startYear, runtimeMinutes, genres, averageRating, numVotes, directors column ----------------------
+# ------------------ Binary Feature Matrix for startYear, runtimeMinutes, genres, averageRating column ----------------------
 
 def get_binary_matrix(df, col):
     if col == 'genres':
@@ -44,6 +44,31 @@ def get_binary_matrix(df, col):
 
     return binary_matrix
 
+def get_recommendations_binary(imdb, binary_matrix, title, user_number):
+    sim_scores = []
+    idx = imdb[imdb['primaryTitle'] == title].index[0]
+    similarity = cosine_similarity(binary_matrix)
+    similarity_scores = list(enumerate(similarity[idx])) # getting the cosine similarity scores for the movie
+    sim_scores.append(similarity_scores)
+
+    index_scores = {}
+
+    for inner_list in sim_scores: # get dictionary of all scores for each movie
+        for index, score in inner_list:
+            if index in index_scores:
+                index_scores[index].append(score)
+            else:
+                index_scores[index] = [score]
+
+    mean_scores = []
+    for index, scores in index_scores.items():
+        mean_score = sum(scores) / len(scores)
+        mean_scores.append([index, mean_score])
+
+    mean_scores = sorted(mean_scores, key=lambda x: x[1], reverse=True)  # sorting the similarity scores in descending order
+    for idx, score in mean_scores[1:user_number+1]:  # Skip the first one as it will be the movie itself
+        similar_movie_title = imdb.iloc[idx]['primaryTitle']
+        print(f"Movie: {similar_movie_title}, Similarity Score: {score:.4f}")
 
 # ---------------------------- Bag of Words for plot column ----------------------
 
@@ -81,7 +106,7 @@ def get_bow_matrix(df):
     return bow_matrix
 
 
-# ----------------------------- TF- IDF for plot columnn --------------------------------------
+# ----------------------------- TF - IDF for plot columnn --------------------------------------
 
 def get_tf_idf(df):
     # create a tf idf matrix
@@ -93,11 +118,7 @@ def get_tf_idf(df):
 # ----------------------------- recommendation function --------------------------------------
 
 def find_similar_movies(movie_title, matrix, df, n):
-    # check if the movie title exists in the DataFrame
-    if movie_title not in df['primaryTitle'].values:
-        print(f"Movie title '{movie_title}' not found.")
-        return None
-    
+   
     # get the index of the movie
     movie_idx = df[df['primaryTitle'] == movie_title].index[0]
     
@@ -120,6 +141,13 @@ def find_similar_movies(movie_title, matrix, df, n):
 # ----------------------------- user input --------------------------------------
 
 title = input("Enter the title of a movie: ")
+# check if the movie title exists in the DataFrame
+while True:
+    title = input("Enter the title of a movie: ")
+    if title in imdb['primaryTitle'].values:
+        break
+    else:
+        print(f"Movie title {title} not found. Please enter a valid title.")
 
 while True:
     n = input("Enter the number of recommened movies that you want: ")
@@ -133,13 +161,11 @@ while True:
 print(f"Top {n} movies similar to '{title}':")
 print()
 print("------------ Binary Feature Matrix Approach ---------------")
-binary_matrix = get_binary_matrix(imdb, 'averageRating')
-similarity = cosine_similarity(binary_matrix)
-idx = imdb[imdb['primaryTitle'] == title].index[0]
-similarity_scores = list(enumerate(similarity[idx])) # getting the cosine similarity scores for the movie
-similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)  # sorting the similarity scores in descending order
-movie_indices = [i[0] for i in similarity_scores[1:user_number+1]] # getting the top_n movie indices
-print(imdb['primaryTitle'].iloc[movie_indices])
+# choose features to compare
+columns = [ "startYear", "runtimeMinutes", "genres", "averageRating"]
+for col in columns:
+    binary_matrix = get_binary_matrix(imdb, col)
+get_recommendations_binary(imdb, binary_matrix, title, user_number)
 
 print()
 print("------------ Bag of Words Approach ---------------")
