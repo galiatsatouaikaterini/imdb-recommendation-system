@@ -1,13 +1,20 @@
 ## Movie and TV Series Recommender Systems
 
-- add summary / stuff to do here
+- files ´preprocessing.py´ and ´dataset_exploration.ipynb´ for data preprocessing and cleaning
+- file ´wikipedia_fetch.py´ used for adding plot's from wikipedia
+- file contenbasedfiltering.py for three approaches to contentbased - filtering
+- file collaborativefiltering.py for Neural Collaborative Filtering 
 
 
 ### General Information
 - download the datasets from google drive and then do the preprocessing steps to get the dataset
 - DATASETS:
     - tconst: list with movie/shows ids
-    - imdb: all movies / shows info from imdb and plots from wikipedia
+    - imdb: all movies / shows info from imdb
+    - imdb_small: preprocessed + cleaned data from imdb, used as a base to get plots from wikipedia
+        - shape: (65672, 10)
+    - imdb_with_plots: cleaned data from imdb_small with plots from wikipedia 
+        - shape: (23442, 11)
     - user: all info about users
     - user/movie matrix: user id, movie id and rating of user 
 
@@ -16,29 +23,21 @@
 
 ### TO DO
 - preprocessing / preparation:
-    - exclude the movies with rating number lower than 1000: DONE
-    - create one type called movie for every type of movie and one for the tv series: DONE
-    - explore the values of TitleType and Genres to drop unwanted ones: DONE
-    - get wikipedia plots : DONE
-    - join all movie datasets into one after preprocessing (add crew) : DONE
-    - create user dataset with random info about users
-    - create user rating dataset
+    - create user rating dataset: Alif
+    - finish contentbasedfiltering: Carina
 
 - collaborative - filtering
-    - Colaborative Filtering 
-    - User based Filtering
-    - Item Based Collaborative Filtering
-    - Singular ValuE Decomposition
+    - finish the evaluation of the prediction: Kat
+    - train the NCF on our dataset
 
-    - Neural Collaborative Filtering (NCF): 
-
-    - test Item Based Collaborative Filtering with test and training split
-
-- content - filtering
-    - tf-idf and cosine similarity for plots
-        - spacy or other NLP to use or sklearn library
-    - think about evaluation of this method
-        - test movies and expected recommendations like sequels
+- writing
+    - write about the data
+    - write about contentbasedfiltering
+    - compare collaborative results of kaggle + our dataset
+    - related work: deep NN
+    - related work: conclusion (top n is content)
+    - write results
+    - write conclusion
 
 
 - Updates
