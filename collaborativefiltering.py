@@ -12,9 +12,9 @@ from tqdm import tqdm
 proceed = input("Do you want to proceed with movielens or imdb? (movielens/imdb): ").strip().lower()
 
 if proceed == 'movielens':
-    imdb = pd.read_csv("movie.csv")
+    imdb = pd.read_csv("movie_small.csv")
     # we need a rating dataframe with userid, movieid, rating
-    ratings = pd.read_csv("rating.csv")
+    ratings = pd.read_csv("rating_small.csv")
     # sorting ratings by timestamp for the splitting
     ratings = ratings.sort_values('timestamp')
     print(ratings.head())
@@ -315,5 +315,5 @@ with torch.no_grad():  # context manager that disables gradient calculation
     average_ndcg, average_hit_ratio, ndcgs, hit_ratios = evaluate_prediction(predictions.squeeze(), val_user_ids, val_movie_ids, val_ratings, k=10)
     print(f'Average NDCG: {average_ndcg:.4f}')
     print(f'Average Hit Ratio: {average_hit_ratio:.4f}')
-    print(f' Hit Ratios: {hit_ratios}')
-    print(f'NDCG: {ndcgs}')
+    #print(f' Hit Ratios: {hit_ratios}')
+    #print(f'NDCG: {ndcgs}')
