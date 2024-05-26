@@ -24,7 +24,7 @@ elif proceed == 'imdb':
     ratings = pd.read_csv("user_movie_rating_cleaned.csv")
     # dropping unecessary columns
     imdb.drop(columns = ['titleType', 'originalTitle', 'startYear', 'runtimeMinutes', 'averageRating', 'numVotes', 'directors', 'plot' ], axis=1,  inplace=True)
-    imdb.rename(columns = {'tconst' : 'movieId', 'primaryTtile': 'title'}, inplace=True)
+    imdb.rename(columns = {'tconst' : 'movieId', 'primaryTitle': 'title'}, inplace=True)
     ratings.rename(columns = {'userID':'userId', 'movieID':'movieId'}, inplace=True)
     ratings['userId'] = ratings['userId'].str.replace('user_', '').astype(int)
 else:
