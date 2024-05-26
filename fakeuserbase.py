@@ -4,10 +4,6 @@ import random
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 
-# import df from preprocessing
-#imdb = get_dataframe()
-#print(imdb.head())
-
 imdb = pd.read_csv("imdb_with_plots.csv")
 
 #applying the pre-processing to the 'plot' column
@@ -20,10 +16,6 @@ bow_matrix = vectorizer.fit_transform(imdb_copy['plot'])
 
 # Function to find the cosine similarity for a given movie title
 def find_similar_movies(movie_title, num_similar, bow_matrix, imdb_copy):
-    # Check if the movie title exists in the DataFrame
-    #if movie_title not in imdb_copy['primaryTitle'].values:
-    #    print(f"Movie title '{movie_title}' not found.")
-    #    return None
     
     # Get the index of the movie
     movie_idx = imdb_copy[imdb_copy['primaryTitle'] == movie_title].index[0]
@@ -50,24 +42,25 @@ num_users = 20000
 users = [f"user_{i}" for i in range(num_users)]
 movies = imdb_copy['tconst'].values
 ratings_data = []
+i = 0
 
 for user in users:
     # Select a random movie
     random_movie = random.choice(movies)
     random_movie_title = imdb_copy[imdb_copy['tconst'] == random_movie]['primaryTitle'].values[0]
-    initial_rating = round(random.uniform(0, 10), 1)
+    initial_rating = round(random.uniform(1, 10), 1)
     
     # Add the initial rating to the dataset
     ratings_data.append((user, random_movie, initial_rating))
     
     # Find a random number of similar movies between 2 and 20
     num_similar_movies = random.randint(2, 20)
-    similar_movies = find_similar_movies(random_movie_title, num_similar_movies, imdb_copy, bow_matrix)
+    similar_movies = find_similar_movies(random_movie_title, num_similar_movies, bow_matrix, imdb_copy)
     
     # Rate similar movies with small increment/decrement
     for movie_id, movie_title, _ in similar_movies:
         rating_adjustment = round(random.uniform(-1, 1), 1)
-        similar_rating = min(max(initial_rating + rating_adjustment, 0), 10)  # Ensure rating is between 0 and 10
+        similar_rating = min(max(initial_rating + rating_adjustment, 1), 10)  # Ensure rating is between 1 and 10
         ratings_data.append((user, movie_id, similar_rating))
     
     # Give a random small number of similar movies very different ratings
@@ -75,8 +68,12 @@ for user in users:
     for _ in range(num_very_different_ratings):
         if similar_movies:
             movie_id, movie_title, _ = random.choice(similar_movies)
-            very_different_rating = round(random.uniform(0, 10), 1)
+            very_different_rating = round(random.uniform(1, 10), 1)
             ratings_data.append((user, movie_id, very_different_rating))
+    
+    # used for logs
+    i = i+1
+    if i % 1000 == 0: print(f'{i} th user')
 
 # Step 4: Create the final dataset
 ratings_df = pd.DataFrame(ratings_data, columns=['userID', 'movieID', 'rating'])

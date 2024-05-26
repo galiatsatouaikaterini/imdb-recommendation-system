@@ -24,15 +24,15 @@
 ### TO DO
 - preprocessing / preparation:
     - create user rating dataset: Alif
-    - finish contentbasedfiltering: Carina
+    - finish contentbasedfiltering: DONE
 
 - collaborative - filtering
     - finish the evaluation of the prediction: Kat
     - train the NCF on our dataset
 
 - writing
-    - write about the data
-    - write about contentbasedfiltering
+    - write about the data: only user dataset + kaggle dataset left
+    - write about contentbasedfiltering: DONE
     - compare collaborative results of kaggle + our dataset
     - related work: deep NN
     - related work: conclusion (top n is content)
