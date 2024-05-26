@@ -4,26 +4,24 @@
 - file ´wikipedia_fetch.py´ used for adding plot's from wikipedia
 - file contenbasedfiltering.py for three approaches to contentbased - filtering
 - file collaborativefiltering.py for Neural Collaborative Filtering 
+- file fakeuserbase.py for creating the user dataset
+- file preprocess_user.ipynb for cleaning the user dataset
 
-
-### General Information
-- download the datasets from google drive and then do the preprocessing steps to get the dataset
-- DATASETS:
-    - tconst: list with movie/shows ids
-    - imdb: all movies / shows info from imdb
-    - imdb_small: preprocessed + cleaned data from imdb, used as a base to get plots from wikipedia
-        - shape: (65672, 10)
-    - imdb_with_plots: cleaned data from imdb_small with plots from wikipedia 
-        - shape: (23442, 11)
-    - user: all info about users
-    - user/movie matrix: user id, movie id and rating of user 
-
-- one file for content-based filtering and one for collaborative filtering
-- use pytorch for ML stuff
+### Datasets
+- tconst: list with movie/shows ids
+- imdb: all movies / shows info from imdb
+- imdb_small: preprocessed + cleaned data from imdb, used as a base to get plots from wikipedia
+    - shape: (65672, 10)
+- imdb_with_plots: cleaned data from imdb_small with plots from wikipedia 
+    - shape: (23442, 11)
+- user_movie_rating: user ratings created randomly and with bag of words algorithm to rate similar movies
+    - shape: (271407, 3)
+- user_movie_rating_cleaned: cleaned user_movie_rating, rounded some ratings + adjusted number of ratings for 1.0 and 10.0
+    - shape: (271407, 3)
 
 ### TO DO
 - preprocessing / preparation:
-    - create user rating dataset: Alif
+    - create user rating dataset: DONE
     - finish contentbasedfiltering: DONE
 
 - collaborative - filtering
@@ -35,7 +33,7 @@
     - write about contentbasedfiltering: DONE
     - compare collaborative results of kaggle + our dataset
     - related work: deep NN
-    - related work: conclusion (top n is content)
+    - related work: conclusion (top n is content): DONE
     - write results
     - write conclusion
 
