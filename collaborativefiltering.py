@@ -8,12 +8,28 @@ from torch.utils.data import DataLoader, TensorDataset
 import time
 from tqdm import tqdm
 
+# ask if the user wants to run the movielens
+proceed = input("Do you want to proceed with movielens or imdb? (movielens/imdb): ").strip().lower()
 
-# Data : tconst, primaryTitle, genres
-imdb = pd.read_csv("movie.csv")
+if proceed == 'movielens':
+    imdb = pd.read_csv("movie.csv")
+    # we need a rating dataframe with userid, movieid, rating
+    ratings = pd.read_csv("rating.csv")
+    # sorting ratings by timestamp for the splitting
+    ratings = ratings.sort_values('timestamp')
+    print(ratings.head())
 
-# we need a rating dataframe with userid, movieid, rating
-ratings = pd.read_csv("rating.csv")
+elif proceed == 'imdb':
+    imdb = pd.read_csv("imdb_with_plots.csv")
+    ratings = pd.read_csv("user_movie_rating_cleaned.csv")
+    # dropping unecessary columns
+    imdb.drop(columns = ['titleType', 'originalTitle', 'startYear', 'runtimeMinutes', 'averageRating', 'numVotes', 'directors', 'plot' ], axis=1,  inplace=True)
+    imdb.rename(columns = {'tconst' : 'movieId', 'primaryTtile': 'title'}, inplace=True)
+    ratings.rename(columns = {'userID':'userId', 'movieID':'movieId'}, inplace=True)
+    ratings['userId'] = ratings['userId'].str.replace('user_', '').astype(int)
+else:
+    print("Invalid input.")
+
 
 # ratings = ratings1.sample(n=40000, random_state=42)
 # imdb = imdb1.sample(n=40000, random_state=42)
@@ -23,15 +39,15 @@ unique_users = ratings['userId'].nunique()
 print(f'There are {unique_users} unique users in the dataset.')
 
 def parse_genres(genres_str):
+    if proceed == 'movielens':
     # split the genres string at each '|' and create a list
-    return genres_str.split('|') # this method directly converts the string to a list where each element is a genre previously separated by '|'
-
+        return genres_str.split('|') # this method directly converts the string to a list where each element is a genre previously separated by '|'
+    elif proceed == 'imdb':
+        return genres_str.split(',')
+    
 imdb['genres'] = imdb['genres'].apply(parse_genres)
 print(imdb.head())
 
-# sorting ratings by timestamp for the splitting
-ratings = ratings.sort_values('timestamp')
-print(ratings.head())
 
 # ----------------------------- Encoding --------------------------------------
 
@@ -56,8 +72,12 @@ val_title_ids = title_ids[num_train:]
 val_ratings = ratings.rating.values[num_train:]
 
 # normalisation of ratings
-train_ratings /= 5 # normalises the ratings to be between 0 and 1 by dividing by the maximum possible rating (assumed to be 5)
-val_ratings /= 5 
+if proceed == 'movielens':
+    train_ratings /= 5 # normalises the ratings to be between 0 and 1 by dividing by the maximum possible rating (assumed to be 5)
+    val_ratings /= 5 
+elif proceed == 'imdb':
+    train_ratings /= 10 # normalises the ratings to be between 0 and 1 by dividing by the maximum possible rating (assumed to be 5)
+    val_ratings /= 10 
 
 # ------------------------------- NCF Model ---------------------------------
 
