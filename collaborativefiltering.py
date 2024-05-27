@@ -30,10 +30,6 @@ elif proceed == 'imdb':
 else:
     print("Invalid input.")
 
-
-# ratings = ratings1.sample(n=40000, random_state=42)
-# imdb = imdb1.sample(n=40000, random_state=42)
-
 unique_users = ratings['userId'].nunique()
 
 print(f'There are {unique_users} unique users in the dataset.')
@@ -315,5 +311,5 @@ with torch.no_grad():  # context manager that disables gradient calculation
     average_ndcg, average_hit_ratio, ndcgs, hit_ratios = evaluate_prediction(predictions.squeeze(), val_user_ids, val_movie_ids, val_ratings, k=10)
     print(f'Average NDCG: {average_ndcg:.4f}')
     print(f'Average Hit Ratio: {average_hit_ratio:.4f}')
-    #print(f' Hit Ratios: {hit_ratios}')
-    #print(f'NDCG: {ndcgs}')
+    print(f' Hit Ratios: {hit_ratios}')
+    print(f'NDCG: {ndcgs}')

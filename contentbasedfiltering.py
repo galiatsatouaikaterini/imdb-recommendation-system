@@ -6,15 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 # get dataset with movie plots
 imdb = pd.read_csv("imdb_with_plots.csv")
 
-# Steps:
-
-# import data from preprocessing
-# feature extraction: Extract meaningful features from movies. This can include genres, descriptions (using NLP techniques), cast, director, user ratings, etc.
-# vectorize the text to numeric: Convert these features into numerical vectors. For text, you could use embeddings from models like Word2Vec, GloVe, or even transformers (e.g., BERT). For categorical data like genres, use one-hot encoding or embeddings.
-# recommendation of top n movies
-
-
-# ------------------ Binary Feature Matrix for startYear, runtimeMinutes, genres, averageRating column ----------------------
+# ------------------ Binary Feature Matrix for specific columns ----------------------
 
 def get_binary_matrix(df, col):
     if col == 'genres':
@@ -44,12 +36,7 @@ def get_binary_matrix(df, col):
 
     return binary_matrix
 
-def get_recommendations_binary(imdb, binary_matrix, title, user_number):
-    sim_scores = []
-    idx = imdb[imdb['primaryTitle'] == title].index[0]
-    similarity = cosine_similarity(binary_matrix)
-    similarity_scores = list(enumerate(similarity[idx])) # getting the cosine similarity scores for the movie
-    sim_scores.append(similarity_scores)
+def get_recommendations_binary(imdb, sim_scores, user_number):
 
     index_scores = {}
 
@@ -68,7 +55,8 @@ def get_recommendations_binary(imdb, binary_matrix, title, user_number):
     mean_scores = sorted(mean_scores, key=lambda x: x[1], reverse=True)  # sorting the similarity scores in descending order
     for idx, score in mean_scores[1:user_number+1]:  # Skip the first one as it will be the movie itself
         similar_movie_title = imdb.iloc[idx]['primaryTitle']
-        print(f"Movie: {similar_movie_title}, Similarity Score: {score:.4f}")
+        movie = imdb.iloc[idx]['titleType']
+        print(f"{movie}: {similar_movie_title}, Similarity Score: {score:.4f}")
 
 # ---------------------------- Bag of Words for plot column ----------------------
 
@@ -97,7 +85,7 @@ def preprocess_plot(text):
 
 # applying the pre-processing to the 'plot' column
 imdb_copy = imdb.copy()
-#imdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot) 
+imdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot)    
 
 def get_bow_matrix(df):
     # create a bag of words model
@@ -109,6 +97,7 @@ def get_bow_matrix(df):
 # ----------------------------- TF - IDF for plot columnn --------------------------------------
 
 def get_tf_idf(df):
+    df['plot'] = df['plot'].apply(preprocess_plot)
     # create a tf idf matrix
     tfidf = TfidfVectorizer(stop_words='english') # creating a TfidfVectorizer object to transform the title genres into a Tf-idf representation and removing stop words
     tfidf_matrix = tfidf.fit_transform(df['plot'])
@@ -140,7 +129,6 @@ def find_similar_movies(movie_title, matrix, df, n):
 
 # ----------------------------- user input --------------------------------------
 
-title = input("Enter the title of a movie: ")
 # check if the movie title exists in the DataFrame
 while True:
     title = input("Enter the title of a movie: ")
@@ -163,9 +151,15 @@ print()
 print("------------ Binary Feature Matrix Approach ---------------")
 # choose features to compare
 columns = [ "startYear", "runtimeMinutes", "genres", "averageRating"]
+sim_scores = []
+idx = imdb[imdb['primaryTitle'] == title].index[0]
+# get cosine similarity for all features based on their binary matrix
 for col in columns:
     binary_matrix = get_binary_matrix(imdb, col)
-get_recommendations_binary(imdb, binary_matrix, title, user_number)
+    similarity = cosine_similarity(binary_matrix)
+    similarity_scores = list(enumerate(similarity[idx])) # getting the cosine similarity scores for the movie
+    sim_scores.append(similarity_scores)
+get_recommendations_binary(imdb, sim_scores, user_number)
 
 print()
 print("------------ Bag of Words Approach ---------------")

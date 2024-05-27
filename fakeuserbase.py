@@ -3,12 +3,35 @@ import pandas as pd
 import random
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
+import nltk
+import ssl
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
 
+# import dataset with plots
 imdb = pd.read_csv("imdb_with_plots.csv")
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+nltk.download('stopwords')
+stemmer = PorterStemmer()
+
+
+# removing stop words and performing stemming/lemmatization
+def preprocess_plot(text):
+    tokens = text.split()
+    tokens = [stemmer.stem(token) for token in tokens if token not in stopwords.words('english')]
+    return ' '.join(tokens)
 
 #applying the pre-processing to the 'plot' column
 imdb_copy = imdb.copy()
-#imdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot) 
+imdb_copy['plot'] = imdb_copy['plot'].apply(preprocess_plot)
 
 #create a bag of words model
 vectorizer = CountVectorizer()
@@ -42,7 +65,6 @@ num_users = 20000
 users = [f"user_{i}" for i in range(num_users)]
 movies = imdb_copy['tconst'].values
 ratings_data = []
-i = 0
 
 for user in users:
     # Select a random movie
@@ -71,9 +93,6 @@ for user in users:
             very_different_rating = round(random.uniform(1, 10), 1)
             ratings_data.append((user, movie_id, very_different_rating))
     
-    # used for logs
-    i = i+1
-    if i % 1000 == 0: print(f'{i} th user')
 
 # Step 4: Create the final dataset
 ratings_df = pd.DataFrame(ratings_data, columns=['userID', 'movieID', 'rating'])
